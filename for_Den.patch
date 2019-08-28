@@ -1,0 +1,250 @@
+Index: target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst	(date 1567000460255)
++++ target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst	(date 1567000460255)
+@@ -0,0 +1,3 @@
++C:\Users\Администратор\IdeaProjects\jettyserver\src\main\java\ru\yandex\max\javist\templater\PageGenerator.java
++C:\Users\Администратор\IdeaProjects\jettyserver\src\main\java\ru\yandex\max\javist\main\Main.java
++C:\Users\Администратор\IdeaProjects\jettyserver\src\main\java\ru\yandex\max\javist\servlets\AllRequestsServlet.java
+Index: target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst	(date 1567000460239)
++++ target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst	(date 1567000460239)
+@@ -0,0 +1,3 @@
++ru\yandex\max\javist\main\Main.class
++ru\yandex\max\javist\templater\PageGenerator.class
++ru\yandex\max\javist\servlets\AllRequestsServlet.class
+Index: src/main/java/servlets/AllRequestsServlet.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/servlets/AllRequestsServlet.java	(date 1567001477552)
++++ src/main/java/servlets/AllRequestsServlet.java	(date 1567001477552)
+@@ -0,0 +1,54 @@
++package servlets;
++
++import templater.PageGenerator;
++import javax.servlet.ServletException;
++import javax.servlet.http.HttpServlet;
++import javax.servlet.http.HttpServletRequest;
++import javax.servlet.http.HttpServletResponse;
++import java.io.IOException;
++import java.util.HashMap;
++import java.util.Map;
++
++public class AllRequestsServlet extends HttpServlet {
++
++    public void doGet(HttpServletRequest request,
++                      HttpServletResponse response) throws ServletException, IOException {
++
++        Map<String, Object> pageVariables = createPageVariablesMap(request);
++        pageVariables.put("message", "");
++
++        response.getWriter().println(PageGenerator.instance().getPage("page.html", pageVariables));
++
++        response.setContentType("text/html;charset=utf-8");
++        response.setStatus(HttpServletResponse.SC_OK);
++
++    }
++
++    public void doPost(HttpServletRequest request,
++                       HttpServletResponse response) throws ServletException, IOException {
++        Map<String, Object> pageVariables = createPageVariablesMap(request);
++
++        String message = request.getParameter("message");
++
++        response.setContentType("text/html;charset=utf-8");
++
++        if (message == null || message.isEmpty()) {
++            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
++        } else {
++            response.setStatus(HttpServletResponse.SC_OK);
++        }
++        pageVariables.put("message", message == null ? "" : message);
++
++        response.getWriter().println(PageGenerator.instance().getPage("page.html", pageVariables));
++    }
++
++    private static Map<String, Object> createPageVariablesMap(HttpServletRequest request) {
++        Map<String, Object> pageVariables = new HashMap<>();
++        pageVariables.put("method", request.getMethod());
++        pageVariables.put("URL", request.getRequestURL().toString());
++        pageVariables.put("pathInfo", request.getPathInfo());
++        pageVariables.put("sessionId", request.getSession().getId());
++        pageVariables.put("parameters", request.getParameterMap().toString());
++        return pageVariables;
++    }
++}
+\ No newline at end of file
+Index: src/main/java/templater/PageGenerator.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/main/java/templater/PageGenerator.java	(date 1567003536418)
++++ src/main/java/templater/PageGenerator.java	(date 1567003536418)
+@@ -0,0 +1,40 @@
++package templater;
++
++import freemarker.template.Configuration;
++import freemarker.template.Template;
++import freemarker.template.TemplateException;
++
++import java.io.File;
++import java.io.IOException;
++import java.io.StringWriter;
++import java.io.Writer;
++import java.util.Map;
++
++
++public class PageGenerator {
++    private static final String HTML_DIR = "templates/page.html";
++
++    private static PageGenerator pageGenerator;
++    private final Configuration cfg;
++
++    public static PageGenerator instance() {
++        if (pageGenerator == null)
++            pageGenerator = new PageGenerator();
++        return pageGenerator;
++    }
++
++    public String getPage(String filename, Map<String, Object> data) {
++        Writer stream = new StringWriter();
++        try {
++            Template template = cfg.getTemplate(HTML_DIR + File.separator + filename);
++            template.process(data, stream);
++        } catch (IOException | TemplateException e) {
++            e.printStackTrace();
++        }
++        return stream.toString();
++    }
++
++    private PageGenerator() {
++        cfg = new Configuration();
++    }
++}
+\ No newline at end of file
+Index: src/templates/page.html
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- src/templates/page.html	(date 1567000370895)
++++ src/templates/page.html	(date 1567000370895)
+@@ -0,0 +1,27 @@
++
++<!DOCTYPE html>
++<html xmlns="http://www.w3.org/1999/xhtml">
++<head>
++    <meta charset="UTF-8"/>
++    <title>L1.1</title>
++</head>
++<body>
++<form action="/page.html" method="POST">
++    Login: <input type="text" name="message"/>
++    <input type="submit" value="Ok">
++</form>
++
++<p>Message: ${message}</p>
++
++<p>Method: ${method}</p>
++
++<p>URL: ${URL}</p>
++
++<p>PathInfo: ${pathInfo}</p>
++
++<p>SessionId: ${sessionId}</p>
++
++<p>Parameters: ${parameters}</p>
++
++</body>
++</html>
+\ No newline at end of file
+diff --git target/classes/main/Main.class target/classes/main/Main.class
+new file mode 100644
+index 0000000000000000000000000000000000000000..ede193a05ae77c30ce0bb0e946b231f888fafc4d
+GIT binary patch
+literal 1114
+zc$}3};ZD;~6#nkkty`%Z3`GSIQIT$JTo4s>NJ5APlY)seB#Xbg?q+r=Ew&xOx9|ac
+z3IDLfB|d-;Wjwb9mMFNmr049M`+fI(=bZNEukSwqtl_1GaXeD7s39f2p+P}eMMXmv
+zOF2|!TvM^EK|@&@F3pNGt12F=SYya;I-V14F{F+10fVyRw*^DdbUd-&J8X&Iz14Cl
+zQ!;(qau2M)k?~nli9R|Z!<cz!IUe65Q>Ua17^aL5X4g8lxNCVG-iQLn>(t{CR?s2R
+z<R!;c#&X?v;!{tAQP>c{u`42mSu;%jhJ5?4V<M@x??vK-kgKL2bhxlx=O`4sE28K#
+zKjZQ<{7!=1wY;_~0%B(+Km-i)SCB;zb7Qdf>ckdDk>h)ziYF8|{9a&-*Nz-VUQS?H
+zcBNwiC5D-Q=w{&msa0P3lwolsZP$0(3H%vDidS^3V}oICM0+}(<AshoN;)>B{QSjQ
+z8ODdpdfVy>oAgf(Qx{XA^%`&FmZyz)y(fQai(diFYPT=Ouw{&1TGCPd@)t@A#rcRB
+z7OuLD+C1O6BxS<L3aGl$^&JoMDAKnie<?7zJF=4$aq^6OrqT!d79U?Hn~jrs+#stb
+z08HU#oV$hFgp%a1^!X{|HwH*G`$(GuC{3l0%wBbXY;&m(wUj$WegLgGG54j9vHe>0
+z6ngCx*XSt>>)l5#u9QQ8#1%0|wn8E~ovx9Jb*e43RFZm_#tiu!R&WQiaYKu^ORN+j
+V3b;q@rs+-)n&AOG593M;zX9!o6x#p*
+
+diff --git target/classes/META-INF/jettyserver.kotlin_module target/classes/META-INF/jettyserver.kotlin_module
+new file mode 100644
+index 0000000000000000000000000000000000000000..2983af70661ad375cc499ebc4da5a68ca46c532e
+GIT binary patch
+literal 16
+Rc${NkU|?ooU|@t|egFVe02KfL
+
+diff --git target/classes/templater/PageGenerator.class target/classes/templater/PageGenerator.class
+new file mode 100644
+index 0000000000000000000000000000000000000000..3ea7469e5515d3b6191d90cf6528aa9ff7a958a3
+GIT binary patch
+literal 1730
+zc$|$@ZBtW66n-{bv*CJy7*LB95EV^OiM85RgH**gY5<iCPNyH7<+{YH$-SAIO{e`u
+z{c7KErp)xKGyVvFiuKu>gfSSQ%y9SRJm)#jIeT{V_WeKq0{9w_2a&?J65qKTuS#5V
+z;oz#>EM+k7Vg%P+EZ}>I8xl8NT*NIGhp=crgx|IZj&}qy_bbcgr?;0L3*^c#)X%C|
+zQ(?8ZX5t{MmIQ_tqp)dIXx3G&rMYgXs=lW~9V-*X0^?<)>y4T+Ixar^*hJp}f3qrZ
+zs=OI%U03l-Lb~80X*Yvvi_jnniOmE_7@r}&%op|`brz#%1dWt~P_MM=8#=D2jha=q
+zW|aSOSv5LqS=Gim3tY*6npu0NWrA9fE~P@h+;io~SG9E&2bQrzo9RjunCzQbr86Oc
+zAn5Q%%y)kAb)%E8W1a_1(rpGc9jZE!&NF3{&8%0NK)PvSt?B~Vwke2;PvU^Zq3uYo
+z#$Ov<omYBk=08`0WM_5bh4xKpp(Jrv;-18Pi6w!-wV)a*(~8OW)4oOgpCS5|Iz1nR
+zfmvYB<O}Np?poA}eSJ5undEv}V9t7bIE*6#M?cdh9<Rt{fw6A2+F{x?^KcYj2#j`J
+zn?>8vbI(n^=HUlCkSKdt#tI=__odaHgA<t9>&$m>9#(PL!$Uk0nBKSld9u3;)w9*s
+z&lc~gx4>|3J9H)Y_L{&!-h|3d*Iw##kcIs^`S@OT-nB*?`MSw|p2>fD=DWMrp72P6
+zflYE{E3xvEixqYA9Lx7<5=`@XJH+R20LPHSD2U@K1qs)-1Lrw=wh3Yo<3#Z-;p#du
+z_HXPDh&LG8M(W4c82A%{>sJZGaejyC1@ffHlqJtZ!XvUInZy)9mg*h14sa}N!y(Cm
+zmD#_L&dDugt~uk*`3qYZ{0*+1Z^7eg=oK9^R5C%0?eQRAY8!8ox<S$m_eQxo#{4E2
+zXbLBA8YlS$U+^?-l9rS7nqufvv^iD)W|EBU>`YP%J3EVf5^tLGSxP;}U2n&Bo;I7+
+zI8y&{;z*<<E=bHt6d@!ortwu$j!XRK1?rUVmMsIv?Cfg{&u(LciD&;t`uAO>o1w5X
+U{9QSlNN<PDc4YE7O3>eY03P+K{{R30
+
+diff --git target/classes/servlets/AllRequestsServlet.class target/classes/servlets/AllRequestsServlet.class
+new file mode 100644
+index 0000000000000000000000000000000000000000..100f0bde603c7cfd643416922997d4d2f15e8508
+GIT binary patch
+literal 2824
+zc$}S9TU%2{6kQV%&LKGzhzdpPrB*RqW4%-~Xsc9(HX<e7YpsWHNRH;_ITMS$-|ugI
+z>T6$otuH9;_xafN>wjwPn#m!6iON^_n9H6$d#|-;%^d#z_qT@t_T$GWUc`75JMg-R
+zLncnfa0I7fXvgU&CNOE@4b{IHMH**JOsSQ#2Bua2Rt#g9i6VuJfpbxGVcf)dWxQbG
+zqUtY2aT!-kysaizO}wM}Ycafw>n3b9nT;ZgD+cBaI0CI>ZpoF$1X>dP7X-rN<vChA
+z(r(F_supJ*@0>kbpe3FzXYIlT+jG@CFotE`^#!)3eaE|9aHO9+UMS2sx2ldW{Y=f4
+z5{S%|PdidzCXv2j-?kT$fqOD9WhFVmCh!fmrk?5MSIQ;dNh!pJSKB18XPwanOfQHa
+z@N7syE`j!nopY8e;Hx63t;wo%3&}Hfg&y5&i*%>5T&RO<UB_zEf?dibGtzTQxzsAl
+z+1VRTR;G?IVD#id)~QIB2n@^{$nn7D%F|^<*C;x^Pekf$8p086M%vk%Or{|i$Qy7C
+z+#txT=h)JjUQLE>0;B6ap8f{nZ5cOLvSrmHnrr_v%=(LxDObI$bIMhf?P*lph}vag
+zCtk8}6qGhB+(f}b5hVj<3l-cVWObS&d0FIw2bNb_sNyywN@qcVE*4VRyzTjpJX)3W
+z!=o17Q_Fqp(~E@#+_CUJKCtj1J`(6!Av<CFd0p|=q9gO=ISU`-6W+k{GieK-;xhxE
+zTlhkm%!)1Zlcjlr{!-1`e4aVgFv&e%;cElmSol^gL@TyuGn(W17QVyx27VCO@|0^S
+zu<hwY8XN+9U6BGCG$ps3oIJbA+P>yg1v(!;R)O8?5(q0&smi)8*XW?p(%)!ey>gDc
+z=(#Kl&ovRa5b!i{1PdvB;>AjVcfw1mTXEVcIi4-c++(^WU)rTCg|>y;pWw$31`|!|
+z%Xl#HBpui9OMkQbx}ga+#;vGXfo0v)B(8e@o})m=%O&ZQq<V0)MkMdPtn!HpCnlAT
+zrO^cfp@f@-YKF;h{gcItyraJkS8C-vqa`b_G0}8Od#-+dl(WF*CT=IH^Ygm!-OX26
+zcUfN6N=##~-2&>IvrO#{2<!}EH&v4MNj**GL6itXPLfc^>LO|7b|o5Ly3WT{#*g_9
+z{;8iZgnD(@?&2)To^KB#1NR~BaS+08wyoM|p-;Ek0eg^OFVK$xda2F7Fj$!Vfx!m|
+zO%2Ce;^8GkT5xe_39SMTV8qSgMYJs<IuwsB!3trh3x6%)xe!#Y7M*J|vw{C4L=Z<O
+zHWFMnGxYGEkY1gCpq3-ZuSSCy(wGil7$d|IA&n&VGTzGp-kN0}E&DZ_5Pc8Q{>n0T
+zv7b>RT(dRy!FbCOIzl)SUIyA5{sXbz@FF^YM#oT>_(`L_3#-n6e0#%x!i<OSBGUUr
+z=J#~X712JlvE9nF+tI<(=;0~s;_qIr945Ibg1b&~eVUpES0`=PN!xYOR|C==n86{8
+zGRq46s{#GPv`irK4|W+iVjvYWAJHRXV26P*1MM{{Lbd*p+WYugORZPK)y0ge&sHFW
+zhs+dWfBkoKUB1sx{a}2<z!EkJ)T%NV-^6LRz#@8<Ezi@^yW+5!(=BTH!isGxZQInQ
+z?SbXjx@fk+U^@bnJbPG$esUir<1{f|BR*Bb?iwatIneWxu9v7+sb<;7(W_ecuW@u-
+Hk52ptalgQY
+
